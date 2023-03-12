@@ -6,6 +6,9 @@ int const reqSamples = 4;
 int readSamplesCount = 0;
 int readSamples[reqSamples];
 
+int task2MeasuredPeriod;
+int task3MeasuredPeriod;
+
 void setup() {
 pinMode(Output_Pin_1, OUTPUT);
 pinMode(Input_Pin_1, INPUT);
@@ -58,4 +61,8 @@ void task4(int InputPin) {
     for (int i = 0; i<reqSamples; i++) { averageValue += readSamples[i]; }
     averageValue = averageValue/reqSamples;
   }
+}
+void task5(int period1, int minFreq1, int maxFreq1, int period2, int minFreq2, int maxFreq2){
+  int normalisedFreq1 = ((1000000/period1)-minFreq1)/(maxFreq1-minFreq1);
+  int normalisedFreq2 = ((1000000/period2)-minFreq2)/(maxFreq2-minFreq2);
 }
