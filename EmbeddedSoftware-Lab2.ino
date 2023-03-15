@@ -21,11 +21,17 @@ int readSamples[reqSamples];
 int task2MinFreq = 333;
 int task2MaxFreq = 1000;
 float task2MeasuredFreq = 0;
+
 int task3MinFreq = 500;
 int task3MaxFreq = 1000;
 float task3MeasuredFreq = 0;
 
+int frameNumber = 0;
+Ticker tick;
+
 void setup() {
+//tick.attach_ms(4,frame);
+  
   Serial.begin(9600);
   pinMode(Trigger, OUTPUT);
   pinMode(Task_Measure_Pin, OUTPUT);
@@ -37,7 +43,212 @@ void setup() {
   pinMode(Input_Pin_3, INPUT);
 }
 
-void loop() {
+void frame(){
+  switch(frameNumber) {
+    case 0:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    task4(Input_Pin_3,Output_Pin_2);
+    task5();
+    break;
+    case 1:
+    task1(Output_Pin_1);
+    break;
+    case 2:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 3:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 4:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 5:
+    task1(Output_Pin_1);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 6:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 7:
+    task1(Output_Pin_1);
+    break;
+    case 8:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 9:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 10:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 11:
+    task1(Output_Pin_1);
+    break;
+    case 12:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 13:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 14:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 15:
+    task1(Output_Pin_1);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 16:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 17:
+    task1(Output_Pin_1);
+    break;
+    case 18:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 19:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 20:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 21:
+    task1(Output_Pin_1);
+    break;
+    case 22:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 23:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 24:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 25:
+    task1(Output_Pin_1);
+    task4(Input_Pin_3,Output_Pin_2);
+    task5();
+    break;
+    case 26:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 27:
+    task1(Output_Pin_1);
+    break;
+    case 28:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 29:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 30:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 31:
+    task1(Output_Pin_1);
+    break;
+    case 32:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 33:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 34:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 35:
+    task1(Output_Pin_1);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 36:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 37:
+    task1(Output_Pin_1);
+    break;
+    case 38:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 39:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 40:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 41:
+    task1(Output_Pin_1);
+    break;
+    case 42:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 43:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    case 44:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 45:
+    task1(Output_Pin_1);
+    task4(Input_Pin_3,Output_Pin_2);
+    break;
+    case 46:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 47:
+    task1(Output_Pin_1);
+    break;
+    case 48:
+    task1(Output_Pin_1);
+    task3(Input_Pin_2);
+    break;
+    case 49:
+    task1(Output_Pin_1);
+    task2(Input_Pin_1);
+    break;
+    default:
+    Serial.println("all your base are belong to us");
+    break;
+  }
+}
+
+void testLoop() {
   // put your main code here, to run repeatedly:
   trigger();
 
