@@ -1,3 +1,5 @@
+#include Ticker.h
+
 #define Output_Pin_1 13 //Actual Pin Selected
 #define Output_Pin_2 14 //Actual Pin Selected
 #define Input_Pin_1 0 //Actual Pin Selected
@@ -26,11 +28,11 @@ int task3MinFreq = 500;
 int task3MaxFreq = 1000;
 float task3MeasuredFreq = 0;
 
-int frameNumber = 0;
+int nextFrame = 0;
 Ticker tick;
 
 void setup() {
-//tick.attach_ms(4,frame);
+  tick.attach_ms(4,frame);
   
   Serial.begin(9600);
   pinMode(Trigger, OUTPUT);
@@ -44,7 +46,12 @@ void setup() {
 }
 
 void frame(){
-  switch(frameNumber) {
+
+  int currentFrame  = nextFrame;
+  nextFrame++;
+  if (nextFrame == 50) {nextFrame = 0;}
+
+  switch(currentFrame) {
     case 0:
     task1(Output_Pin_1);
     task3(Input_Pin_2);
@@ -246,6 +253,7 @@ void frame(){
     Serial.println("all your base are belong to us");
     break;
   }
+  
 }
 
 void testLoop() {
