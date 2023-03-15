@@ -1,4 +1,5 @@
-#include Ticker.h
+#include <Ticker.h>
+#include <B31DGMonitor.h>
 
 #define Output_Pin_1 13 //Actual Pin Selected
 #define Output_Pin_2 14 //Actual Pin Selected
@@ -31,18 +32,22 @@ float task3MeasuredFreq = 0;
 int nextFrame = 0;
 Ticker tick;
 
+B31DGCyclicExecutiveMonitor monitor;
+
 void setup() {
-  tick.attach_ms(4,frame);
   
-  Serial.begin(9600);
   pinMode(Trigger, OUTPUT);
   pinMode(Task_Measure_Pin, OUTPUT);
-  
   pinMode(Output_Pin_1, OUTPUT);
   pinMode(Output_Pin_2, OUTPUT);
   pinMode(Input_Pin_1, INPUT);
   pinMode(Input_Pin_2, INPUT);
   pinMode(Input_Pin_3, INPUT);
+  Serial.begin(9600);
+
+  tick.attach_ms(4,frame);
+  monitor.startMonitoring();
+  frame();
 }
 
 void frame(){
@@ -256,6 +261,10 @@ void frame(){
   
 }
 
+void loop() {
+  
+}
+
 void testLoop() {
   // put your main code here, to run repeatedly:
   trigger();
@@ -280,6 +289,7 @@ void trigger(){
 }
 
 void task1(int OutputPin){
+  monitor.jobStarted(1);
   digitalWrite(OutputPin, HIGH);
   delayMicroseconds(200);
   digitalWrite(OutputPin,LOW);
@@ -287,23 +297,29 @@ void task1(int OutputPin){
   digitalWrite(OutputPin,HIGH);
   delayMicroseconds(30);
   digitalWrite(OutputPin,LOW);
+  monitor.jobEnded(1);
 }
 
 void task2(int InputPin){
-   bool currentState = digitalRead(InputPin);
-   int halfWaveLengthMicro = pulseIn(InputPin, !currentState, 3100);
-   if (halfWaveLengthMicro <= 0) {task2MeasuredFreq = 0;}
-   else {int WaveLengthMicro = 2*halfWaveLengthMicro; task2MeasuredFreq = 1000000/WaveLengthMicro;}
+  monitor.jobStarted(2);
+  bool currentState = digitalRead(InputPin);
+  int halfWaveLengthMicro = pulseIn(InputPin, !currentState, 3100);
+  if (halfWaveLengthMicro <= 0) {task2MeasuredFreq = 0;}
+  else {int WaveLengthMicro = 2*halfWaveLengthMicro; task2MeasuredFreq = 1000000/WaveLengthMicro;}
+  monitor.jobEnded(2);
 }
 
 void task3(int InputPin){
-    bool currentState = digitalRead(InputPin);
-    int halfWaveLengthMicro = pulseIn(InputPin, !currentState, 2100);
-   if (halfWaveLengthMicro <= 0) {task3MeasuredFreq = 0;}
-   else {int WaveLengthMicro = 2*halfWaveLengthMicro;task3MeasuredFreq = 1000000/WaveLengthMicro;}
+  monitor.jobStarted(3);
+  bool currentState = digitalRead(InputPin);
+  int halfWaveLengthMicro = pulseIn(InputPin, !currentState, 2100);
+  if (halfWaveLengthMicro <= 0) {task3MeasuredFreq = 0;}
+  else {int WaveLengthMicro = 2*halfWaveLengthMicro;task3MeasuredFreq = 1000000/WaveLengthMicro;}
+  monitor.jobEnded(3);
 }
 
 void task4(int InputPin, int OutputPin) {
+  monitor.jobStarted(4);
   //Overflow Prevention Code
   if( readSamplesCount == 2*reqSamples) { readSamplesCount == reqSamples; }
 
@@ -327,6 +343,7 @@ void task4(int InputPin, int OutputPin) {
 
   if(averageValue > 2048) { digitalWrite(OutputPin,HIGH);}
   else{ digitalWrite(OutputPin,LOW);}
+  monitor.jobEnded(4);
 }
 
 int task5FreqNorm(float Frequency, int minFreq, int maxFreq){
@@ -338,8 +355,10 @@ int task5FreqNorm(float Frequency, int minFreq, int maxFreq){
 }
 
 void task5(){
+  monitor.jobStarted(5);
   Serial.print(task5FreqNorm(task2MeasuredFreq,task2MinFreq,task2MaxFreq));
   Serial.print(",");
   Serial.print(task5FreqNorm(task3MeasuredFreq,task3MinFreq,task3MaxFreq));
   Serial.print("  ");
+  monitor.jobEnded(5);
 }
