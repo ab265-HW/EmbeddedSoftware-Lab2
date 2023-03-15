@@ -359,6 +359,6 @@ void task5(){
   Serial.print(task5FreqNorm(task2MeasuredFreq,task2MinFreq,task2MaxFreq));
   Serial.print(",");
   Serial.print(task5FreqNorm(task3MeasuredFreq,task3MinFreq,task3MaxFreq));
-  Serial.print("  ");
+  Serial.print("\n");
   monitor.jobEnded(5);
 }
