@@ -1,26 +1,39 @@
 #define Output_Pin_1 13 //Actual Pin Selected
-#define Input_Pin_1 2 //select actual pin
-#define Input_Pin_2 3 //select actual pin
+#define Output_Pin_2 14 //Actual Pin Selected
+#define Input_Pin_1 0 //Actual Pin Selected
+#define Input_Pin_2 2 //Actual Pin Selected
+#define Input_Pin_3 4 //Actual Pin Selected
 
 int const reqSamples = 4;
 int readSamplesCount = 0;
 int readSamples[reqSamples];
 
-int task2MeasuredPeriod;
-int task3MeasuredPeriod;
+int task2MinFreq = 333;
+int task2MaxFreq = 1000;
+float task2MeasuredFreq = 0;
+int task3MinFreq = 500;
+int task3MaxFreq = 1000;
+float task3MeasuredFreq = 0;
 
 void setup() {
+Serial.begin(9600);
 pinMode(Output_Pin_1, OUTPUT);
+pinMode(Output_Pin_2, OUTPUT);
 pinMode(Input_Pin_1, INPUT);
-
+pinMode(Input_Pin_2, INPUT);
+pinMode(Input_Pin_3, INPUT);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  task2(Input_Pin_1);
+  task3(Input_Pin_2);
+  task4(Input_Pin_3,Output_Pin_2);
+  task5();
 
 }
 
-void Task1(int OutputPin){
+void task1(int OutputPin){
   digitalWrite(OutputPin, HIGH);
   delayMicroseconds(200);
   digitalWrite(OutputPin,LOW);
@@ -29,18 +42,20 @@ void Task1(int OutputPin){
   delayMicroseconds(30);
   digitalWrite(OutputPin,LOW);
 }
-void Task2(int InputPin){
-   bool currentState = analogRead(InputPin);
+void task2(int InputPin){
+   bool currentState = digitalRead(InputPin);
    int halfWaveLengthMicro = pulseIn(InputPin, !currentState, 3500);
-   int WaveLengthMicro = 2*halfWaveLengthMicro;
+   if (halfWaveLengthMicro <= 0) {task2MeasuredFreq = 0;}
+   else {int WaveLengthMicro = 2*halfWaveLengthMicro; task2MeasuredFreq = 1000000/WaveLengthMicro;}
 }
-void Task3(int InputPin){
-    bool currentState = analogRead(InputPin);
+void task3(int InputPin){
+    bool currentState = digitalRead(InputPin);
     int halfWaveLengthMicro = pulseIn(InputPin, !currentState, 3500);
-    int WaveLengthMicro = 2*halfWaveLengthMicro;
+   if (halfWaveLengthMicro <= 0) {task3MeasuredFreq = 0;}
+   else {int WaveLengthMicro = 2*halfWaveLengthMicro;task3MeasuredFreq = 1000000/WaveLengthMicro;}
 }
 
-void task4(int InputPin) {
+void task4(int InputPin, int OutputPin) {
   //Overflow Prevention Code
   if( readSamplesCount == 2*reqSamples) { readSamplesCount == reqSamples; }
 
@@ -61,8 +76,21 @@ void task4(int InputPin) {
     for (int i = 0; i<reqSamples; i++) { averageValue += readSamples[i]; }
     averageValue = averageValue/reqSamples;
   }
+
+  if(averageValue > 2048) { digitalWrite(OutputPin,HIGH);}
+  else{ digitalWrite(OutputPin,LOW);}
 }
-void task5(int period1, int minFreq1, int maxFreq1, int period2, int minFreq2, int maxFreq2){
-  int normalisedFreq1 = ((1000000/period1)-minFreq1)/(maxFreq1-minFreq1);
-  int normalisedFreq2 = ((1000000/period2)-minFreq2)/(maxFreq2-minFreq2);
+int task5FreqNorm(float Frequency, int minFreq, int maxFreq){
+  if(Frequency != 0) {
+    float normalisedFreq = 99*(Frequency-minFreq)/(maxFreq-minFreq);
+    return normalisedFreq;
+  }
+  return 0;
+}
+
+void task5(){
+  Serial.print(task5FreqNorm(task2MeasuredFreq,task2MinFreq,task2MaxFreq));
+  Serial.print(",");
+  Serial.print(task5FreqNorm(task3MeasuredFreq,task3MinFreq,task3MaxFreq));
+  Serial.print("  ");
 }
