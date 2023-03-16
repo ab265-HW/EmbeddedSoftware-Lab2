@@ -45,7 +45,7 @@ void setup() {
   pinMode(Input_Pin_3, INPUT);
   Serial.begin(9600);
 
-  tick.attach_ms(4,frame);
+ tick.attach_ms(4,frame);
   monitor.startMonitoring();
   frame();
 }
@@ -349,7 +349,7 @@ void task4(int InputPin, int OutputPin) {
 int task5FreqNorm(float Frequency, int minFreq, int maxFreq){
   if(Frequency != 0) {
     float normalisedFreq = 99*(Frequency-minFreq)/(maxFreq-minFreq);
-    return normalisedFreq;
+    return constrain(normalisedFreq,0,99);
   }
   return 0;
 }
