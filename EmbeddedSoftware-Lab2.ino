@@ -7,8 +7,8 @@
 #define Input_Pin_2 2 //Actual Pin Selected
 #define Input_Pin_3 4 //Actual Pin Selected
 
-#define Trigger 15
 #define Task_Measure_Pin 21
+#define Trigger 15
 
 //--Task Results--
 //Task 1 = 280us
@@ -16,10 +16,6 @@
 //Task 3 = 2.1ms
 //Task 4 = 54us
 //Task 5 = 25us
-
-int const reqSamples = 4;
-int readSamplesCount = 0;
-int readSamples[reqSamples];
 
 int task2MinFreq = 333;
 int task2MaxFreq = 1000;
@@ -29,15 +25,21 @@ int task3MinFreq = 500;
 int task3MaxFreq = 1000;
 float task3MeasuredFreq = 0;
 
-int nextFrame = 0;
-Ticker tick;
+int const reqSamples = 4;
+int readSamplesCount = 0;
+int readSamples[reqSamples];
 
+Ticker tick;
+int nextFrame = 0;
 B31DGCyclicExecutiveMonitor monitor;
 
 void setup() {
-  
-  pinMode(Trigger, OUTPUT);
+
+  //Setup pinmodes for testing tools
   pinMode(Task_Measure_Pin, OUTPUT);
+  pinMode(Trigger, OUTPUT);
+  
+  //Setup all pinModes appropraitely for the executive
   pinMode(Output_Pin_1, OUTPUT);
   pinMode(Output_Pin_2, OUTPUT);
   pinMode(Input_Pin_1, INPUT);
@@ -45,17 +47,23 @@ void setup() {
   pinMode(Input_Pin_3, INPUT);
   Serial.begin(9600);
 
- tick.attach_ms(4,frame);
+  //setup ticker, monitor and call first frame
+  tick.attach_ms(4,frame); //ticker will call frame() every 4ms, 4ms after instantiation
   monitor.startMonitoring();
   frame();
 }
-
+//The Frame method contains a switchcase for with 50 states, which state executes is determined by a counter that is reset every 50 frames
 void frame(){
 
+  //locally saves the current frame and increments nextFrame in preparation for the next frame() call
+  //this is done at the begining of the frame so that if the frame is interupted, the next frame() call isnt the same frame again
   int currentFrame  = nextFrame;
   nextFrame++;
+  //while modulo can be used to determine the frame with a standard counter, as an embedded system is intended to run potentially indefinitely, the counter would overflow
+  //this prevents this and makes the code easier to read
   if (nextFrame == 50) {nextFrame = 0;}
 
+  //each case is one of the 50 frames of the cyclic executive
   switch(currentFrame) {
     case 0:
     task1(Output_Pin_1);
@@ -261,10 +269,7 @@ void frame(){
   
 }
 
-void loop() {
-  
-}
-
+//This is the loop() method used when testing and implementing the tasks before the cyclic executive was implemented, this is kept here for clarity sake
 void testLoop() {
   // put your main code here, to run repeatedly:
   trigger();
@@ -282,14 +287,18 @@ void testLoop() {
   digitalWrite(Task_Measure_Pin, LOW);
 }
 
+//this method send a trigger signal out of the assigned Trigger pin for aligning the occiloscope, this was used for timing tasks, its unused in the executive due to not being
+//requested as part of any task, however it would potentially be useful for visualising task 1 to verify it, preventing the need to freeze the occiloscope
 void trigger(){
     digitalWrite(Trigger,HIGH);
     delayMicroseconds(50);
     digitalWrite(Trigger,LOW);
 }
 
+//task one implements a signal made up of a high signal for 200ms, low signal for 50, followed by a high signal for 30ms, and back to low.
 void task1(int OutputPin){
   monitor.jobStarted(1);
+  
   digitalWrite(OutputPin, HIGH);
   delayMicroseconds(200);
   digitalWrite(OutputPin,LOW);
@@ -297,9 +306,12 @@ void task1(int OutputPin){
   digitalWrite(OutputPin,HIGH);
   delayMicroseconds(30);
   digitalWrite(OutputPin,LOW);
+  
   monitor.jobEnded(1);
 }
 
+//task2 and task 3 implement the same logic for measuring frequencies, however use different minimum and maximum frequency values, these could be
+//refactored into a single method utilising more input parameters to the methods, however I did not have time to implement this refactor in time for the deadline
 void task2(int InputPin){
   monitor.jobStarted(2);
   bool currentState = digitalRead(InputPin);
@@ -309,6 +321,8 @@ void task2(int InputPin){
   monitor.jobEnded(2);
 }
 
+//task2 and task 3 implement the same logic for measuring frequencies, however use different minimum and maximum frequency values, these could be
+//refactored into a single method utilising more input parameters to the methods, however I did not have time to implement this refactor in time for the deadline
 void task3(int InputPin){
   monitor.jobStarted(3);
   bool currentState = digitalRead(InputPin);
@@ -318,9 +332,12 @@ void task3(int InputPin){
   monitor.jobEnded(3);
 }
 
+//task4 implements the averaging code utilising a cyclic buffer, when the cyclic buffer is not full the averaging is done using the current number of readings taken.
+//once the cyclic buffer is full the averaging normally, by summing all the values in the array and dividing by the array length defined in the fields at the top of the script.
 void task4(int InputPin, int OutputPin) {
   monitor.jobStarted(4);
-  //Overflow Prevention Code
+  //Overflow Prevention Code, readSamplesCount starts from 0 and counts till it reaches 2*reqSamples where its reset to reqSamples
+  //this allows implementing different behaviour for before the cyclic buffer is filled, and after the cyclic buffer has filled.
   if( readSamplesCount == 2*reqSamples) { readSamplesCount == reqSamples; }
 
   //Read Code
@@ -330,22 +347,24 @@ void task4(int InputPin, int OutputPin) {
 
   //Averaging Code
   int averageValue = 0;
-  //this computes the Average before an adequate number of samples are obtained
+  //this computes the Average before enough readings have been taken to fill the cyclic buffer
   if (readSamplesCount < reqSamples) {
     for (int i = 0; i< readSamplesCount; i++) { averageValue += readSamples[i]; }
     averageValue = averageValue/readSamplesCount;
   }
-  //this computes the average after an adequate number of samples are obtained
+  //this computes the average when the cyclic buffer has been filled
   else {
     for (int i = 0; i<reqSamples; i++) { averageValue += readSamples[i]; }
     averageValue = averageValue/reqSamples;
   }
 
-  if(averageValue > 2048) { digitalWrite(OutputPin,HIGH);}
+  //if the average value is half of the maximum allowed analog read value, then output a high signal on the Output pin otherwise, output a Low signal
+  if(averageValue > 2047) { digitalWrite(OutputPin,HIGH);}
   else{ digitalWrite(OutputPin,LOW);}
   monitor.jobEnded(4);
 }
 
+//if the frequency is zero, will return 0 otherwise the frequency is bound and constrained according to the minimum and maximum frequency values, and the 0,99 range
 int task5FreqNorm(float Frequency, int minFreq, int maxFreq){
   if(Frequency != 0) {
     float normalisedFreq = 99*(Frequency-minFreq)/(maxFreq-minFreq);
@@ -354,11 +373,18 @@ int task5FreqNorm(float Frequency, int minFreq, int maxFreq){
   return 0;
 }
 
+//prints bound and constrained values of task2 and task3 frequencies in comma deliniated format
 void task5(){
   monitor.jobStarted(5);
+  //print to serial the NormalisedFrequency
   Serial.print(task5FreqNorm(task2MeasuredFreq,task2MinFreq,task2MaxFreq));
   Serial.print(",");
+  //print to serial the NormalisedFrequency
   Serial.print(task5FreqNorm(task3MeasuredFreq,task3MinFreq,task3MaxFreq));
   Serial.print("\n");
   monitor.jobEnded(5);
+}
+//arduino code require the presence of a loop function to compile, its empty as its unnecassary for a cyclical executive
+void loop() {
+  
 }
